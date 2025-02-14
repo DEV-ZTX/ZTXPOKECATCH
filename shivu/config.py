@@ -2,19 +2,19 @@ class Config(object):
     LOGGER = True
 
     # Get this value from my.telegram.org/apps
-    OWNER_ID = "6765826972"
-    sudo_users = "6845325416", "6765826972"
-    GROUP_ID = -1002133191051
-    TOKEN = "6707490163:AAHZzqjm3rbEZsObRiNaT7DMtw_i5WPo_0o"
-    mongo_url = "mongodb+srv://HaremDBBot:ThisIsPasswordForHaremDB@haremdb.swzjngj.mongodb.net/?retryWrites=true&w=majority"
-    PHOTO_URL = ["https://telegra.ph/file/b925c3985f0f325e62e17.jpg", "https://telegra.ph/file/4211fb191383d895dab9d.jpg"]
-    SUPPORT_CHAT = "Collect_em_support"
-    UPDATE_CHAT = "Collect_em_support"
-    BOT_USERNAME = "Collect_Em_AllBot"
-    CHARA_CHANNEL_ID = "-1002133191051"
-    api_id = 26626068
-    api_hash = "bf423698bcbe33cfd58b11c78c42caa2"
+    OWNER_ID = "7678359785"
+    sudo_users = ""
+    GROUP_ID = -1002323856532
+    TOKEN = "8111204267:AAE5iq9Z0gPE3g-n9fiCxWYmUwKklE9CPRE"
+    mongo_url = "mongodb+srv://vjimmy276:<GL83MueHjvCT32m3>@cluster0.pxamg.mongodb.net/?retryWrites=true&w=majority"
+    PHOTO_URL = ["https://graph.org/file/34ce254537a31ca2a788b-f8b59bff546af8dc58.jpg", "https://graph.org/file/0cd48cfd409203a00da74-2a919fe99dd1b238ec.jpg"]
+    SUPPORT_CHAT = "https://t.me/ZTX_HEADQUATERS"
+    UPDATE_CHAT = "https://t.me/TEAM_ZTX"
+    BOT_USERNAME = "PokemonGuessbot"
+    CHARA_CHANNEL_ID = "-1002323856532"
+    api_id = 28928028
 
+    api_hash = "b097202e877124392f4851d215fa8f3a"
     
 class Production(Config):
     LOGGER = True
