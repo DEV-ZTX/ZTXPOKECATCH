@@ -1,4 +1,4 @@
-pimport logging  
+import logging  
 import os
 from pyrogram import Client 
 from telegram.ext import Application
