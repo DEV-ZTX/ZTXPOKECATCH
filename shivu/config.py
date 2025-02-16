@@ -14,8 +14,8 @@ class Config:
     MONGO_URL = os.getenv("MONGO_URL") or ""
     PHOTO_URL = os.getenv("PHOTO_URL", "https://envs.sh/QpT.jpg").split(",") if os.getenv("PHOTO_URL") else []
     VIDEO_URL = os.getenv("VIDEO_URL", "https://envs.sh/QpQ.mp4")  # Add Video URL here
-    SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "")
-    UPDATE_CHAT = os.getenv("UPDATE_CHAT", "")
+    SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "https://t.me/ZTX_HEADQUATERS")
+    UPDATE_CHAT = os.getenv("UPDATE_CHAT", "https://t.me/TEAM_ZTX")
     BOT_USERNAME = os.getenv("BOT_USERNAME", "PokemonGuessbot")
     CHARA_CHANNEL_ID = int(os.getenv("CHARA_CHANNEL_ID", "-1002323856532"))
     
