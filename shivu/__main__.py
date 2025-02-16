@@ -2,7 +2,7 @@ import time
 import random
 import asyncio
 import re
-from modules import give
+from shivu import give
 from html import escape
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CommandHandler, CallbackContext, MessageHandler, filters
