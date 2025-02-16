@@ -2,8 +2,10 @@ import random
 from html import escape
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler
-from shivu import application, VIDEO_URL, SUPPORT_CHAT, UPDATE_CHAT, BOT_USERNAME, db, GROUP_ID
-from shivu import pokedex as collection
+from shivu import (
+    application, VIDEO_URL, SUPPORT_CHAT, UPDATE_CHAT, BOT_USERNAME, db, GROUP_ID,
+    pokedex as collection, banned_users_collection
+)
 
 async def start(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
@@ -23,37 +25,80 @@ async def start(update: Update, context: CallbackContext) -> None:
         if user_data['first_name'] != first_name or user_data['username'] != username:
             await collection.update_one({"_id": user_id}, {"$set": {"first_name": first_name, "username": username}})
 
-    if update.effective_chat.type == "private":
-        caption = """
-        **🎮 Welcome, Trainer!**  
-        
-        I am **Pokémon Catcher Bot**! Add me to your group, and I will release wild Pokémon after every 100 messages.  
-        🏆 Use `/catch` to **catch Pokémon**  
-        📖 Check your collection with `/pokedex`  
-        ⚔ Trade Pokémon using `/trade`  
-        
-        **Are you ready to become the ultimate Pokémon Master?**  
-        """
-        
-        keyboard = [
-            [InlineKeyboardButton("➕ Add Me", url=f'http://t.me/{BOT_USERNAME}?startgroup=true')],
-            [InlineKeyboardButton("💬 Support", url=f'https://t.me/{SUPPORT_CHAT}'),
-             InlineKeyboardButton("📢 Updates", url=f'https://t.me/{UPDATE_CHAT}')],
-            [InlineKeyboardButton("❓ Help", callback_data='help')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+    caption = """
+    **🎮 Welcome, Trainer!**  
 
-        await context.bot.send_video(chat_id=update.effective_chat.id, video=VIDEO_URL, caption=caption, reply_markup=reply_markup, parse_mode='markdown')
+    I am **Pokémon Catcher Bot**! Add me to your group, and I will release wild Pokémon after every 100 messages.  
+    🏆 Use `/catch` to **catch Pokémon**  
+    📖 Check your collection with `/pokedex`  
+    ⚔ Trade Pokémon using `/trade`  
 
-    else:
-        keyboard = [
-            [InlineKeyboardButton("➕ Add Me", url=f'http://t.me/{BOT_USERNAME}?startgroup=true')],
-            [InlineKeyboardButton("💬 Support", url=f'https://t.me/{SUPPORT_CHAT}'),
-             InlineKeyboardButton("📢 Updates", url=f'https://t.me/{UPDATE_CHAT}')],
-            [InlineKeyboardButton("❓ Help", callback_data='help')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await context.bot.send_video(chat_id=update.effective_chat.id, video=VIDEO_URL, caption="🎴 I'm active! Chat with me in PM for more info.", reply_markup=reply_markup)
+    **Are you ready to become the ultimate Pokémon Master?**  
+    """
+    
+    keyboard = [
+        [InlineKeyboardButton("➕ Add Me", url=f'http://t.me/{BOT_USERNAME}?startgroup=true')],
+        [InlineKeyboardButton("💬 Support", url=f'https://t.me/{SUPPORT_CHAT}'),
+         InlineKeyboardButton("📢 Updates", url=f'https://t.me/{UPDATE_CHAT}')],
+        [InlineKeyboardButton("❓ Help", callback_data='help')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await context.bot.send_video(
+        chat_id=update.effective_chat.id,
+        video=VIDEO_URL,
+        caption=caption,
+        reply_markup=reply_markup,
+        parse_mode='markdown'
+    )
+
+async def gban(update: Update, context: CallbackContext) -> None:
+    """Globally bans a user from all groups where the bot is an admin."""
+    if update.effective_user.id != 123456789:  # Replace with your Owner ID
+        await update.message.reply_text("❌ You do not have permission to use this command.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Usage: /gban <user_id>")
+        return
+
+    try:
+        user_id = int(context.args[0])
+        await banned_users_collection.insert_one({"user_id": user_id})
+        await update.message.reply_text(f"🚨 User {user_id} has been **globally banned**.")
+
+        # Attempt to ban the user from all groups
+        async for group in db.groups.find():
+            try:
+                await context.bot.ban_chat_member(group["_id"], user_id)
+            except:
+                pass
+    except ValueError:
+        await update.message.reply_text("Invalid user ID.")
+
+async def ungban(update: Update, context: CallbackContext) -> None:
+    """Removes a user from the global ban list."""
+    if update.effective_user.id != 123456789:  # Replace with your Owner ID
+        await update.message.reply_text("❌ You do not have permission to use this command.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Usage: /ungban <user_id>")
+        return
+
+    try:
+        user_id = int(context.args[0])
+        await banned_users_collection.delete_one({"user_id": user_id})
+        await update.message.reply_text(f"✅ User {user_id} has been **unbanned** globally.")
+
+        # Attempt to unban the user from all groups
+        async for group in db.groups.find():
+            try:
+                await context.bot.unban_chat_member(group["_id"], user_id)
+            except:
+                pass
+    except ValueError:
+        await update.message.reply_text("Invalid user ID.")
 
 async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
@@ -62,7 +107,7 @@ async def button(update: Update, context: CallbackContext) -> None:
     if query.data == 'help':
         help_text = """
         **📜 Trainer's Guide:**  
-        
+
         🎯 `/catch` - Catch Pokémon (group only)  
         🏆 `/pokedex` - View your caught Pokémon  
         🤝 `/trade` - Trade Pokémon with others  
@@ -70,6 +115,8 @@ async def button(update: Update, context: CallbackContext) -> None:
         🌍 `/top_trainers` - View top trainers in this group  
         🏅 `/gtop` - View **global** top trainers  
         ⏳ `/changetime` - Adjust Pokémon spawn time (group only)  
+        🔨 `/gban` - Ban a user from all bot groups (Admin only)  
+        🔓 `/ungban` - Unban a user globally  
         """
         help_keyboard = [[InlineKeyboardButton("🔙 Back", callback_data='back')]]
         reply_markup = InlineKeyboardMarkup(help_keyboard)
@@ -85,12 +132,12 @@ async def button(update: Update, context: CallbackContext) -> None:
     elif query.data == 'back':
         caption = """
         **🎮 Welcome, Trainer!**  
-        
+
         I am **Pokémon Catcher Bot**! Add me to your group, and I will release wild Pokémon after every 100 messages.  
         🏆 Use `/catch` to **catch Pokémon**  
         📖 Check your collection with `/pokedex`  
         ⚔ Trade Pokémon using `/trade`  
-        
+
         **Are you ready to become the ultimate Pokémon Master?**  
         """
 
@@ -111,5 +158,6 @@ async def button(update: Update, context: CallbackContext) -> None:
         )
 
 application.add_handler(CallbackQueryHandler(button, pattern='^help$|^back$', block=False))
-start_handler = CommandHandler('start', start, block=False)
-application.add_handler(start_handler)
+application.add_handler(CommandHandler("start", start, block=False))
+application.add_handler(CommandHandler("gban", gban, block=False))
+application.add_handler(CommandHandler("ungban", ungban, block=False))
