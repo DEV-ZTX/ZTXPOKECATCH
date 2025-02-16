@@ -13,6 +13,7 @@ class Config:
     TOKEN = os.getenv("TOKEN") or "YOUR_DEFAULT_TOKEN"
     MONGO_URL = os.getenv("MONGO_URL") or "YOUR_DEFAULT_MONGO_URL"
     PHOTO_URL = os.getenv("PHOTO_URL", "").split(",") if os.getenv("PHOTO_URL") else []
+    VIDEO_URL = os.getenv("VIDEO_URL", "https://example.com/specific_video.mp4")  # Add Video URL here
     SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "https://t.me/default_support")
     UPDATE_CHAT = os.getenv("UPDATE_CHAT", "https://t.me/default_updates")
     BOT_USERNAME = os.getenv("BOT_USERNAME", "DefaultBot")
