@@ -1,4 +1,4 @@
-import logging  
+pimport logging  
 import os
 from pyrogram import Client 
 from telegram.ext import Application
@@ -18,8 +18,8 @@ LOGGER = logging.getLogger(__name__)
 from shivu.config import Development as Config
 
 
-API_ID = Config.api_id
-api_hash = Config.api_hash
+API_ID = Config.API_ID
+api_hash = Config.API_HASH
 TOKEN = Config.TOKEN
 GROUP_ID = Config.GROUP_ID
 CHARA_CHANNEL_ID = Config.CHARA_CHANNEL_ID 
@@ -28,7 +28,7 @@ PHOTO_URL = Config.PHOTO_URL
 SUPPORT_CHAT = Config.SUPPORT_CHAT 
 UPDATE_CHAT = Config.UPDATE_CHAT
 BOT_USERNAME = Config.BOT_USERNAME 
-SUDO_USERS = Config.sudo_users
+SUDO_USERS = Config.SUDO_USERS
 OWNER_ID = Config.OWNER_ID 
 
 application = Application.builder().token(TOKEN).build()
