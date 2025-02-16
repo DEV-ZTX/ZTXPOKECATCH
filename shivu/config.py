@@ -12,8 +12,8 @@ class Config:
     GROUP_ID = int(os.getenv("GROUP_ID", "-1002323856532"))
     TOKEN = os.getenv("TOKEN") or ""
     MONGO_URL = os.getenv("MONGO_URL") or ""
-    PHOTO_URL = os.getenv("PHOTO_URL", "").split(",") if os.getenv("PHOTO_URL") else []
-    VIDEO_URL = os.getenv("VIDEO_URL", "")  # Add Video URL here
+    PHOTO_URL = os.getenv("PHOTO_URL", "https://envs.sh/QpT.jpg").split(",") if os.getenv("PHOTO_URL") else []
+    VIDEO_URL = os.getenv("VIDEO_URL", "https://envs.sh/QpQ.mp4")  # Add Video URL here
     SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "")
     UPDATE_CHAT = os.getenv("UPDATE_CHAT", "")
     BOT_USERNAME = os.getenv("BOT_USERNAME", "PokemonGuessbot")
