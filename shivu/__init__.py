@@ -19,7 +19,7 @@ from shivu.config import Development as Config
 
 
 API_ID = Config.API_ID
-api_hash = Config.API_HASH
+API_HASH = Config.API_HASH
 TOKEN = Config.TOKEN
 GROUP_ID = Config.GROUP_ID
 CHARA_CHANNEL_ID = Config.CHARA_CHANNEL_ID 
@@ -32,7 +32,7 @@ SUDO_USERS = Config.SUDO_USERS
 OWNER_ID = Config.OWNER_ID 
 
 application = Application.builder().token(TOKEN).build()
-shivuu = Client("Shivu", api_id, api_hash, bot_token=TOKEN)
+shivuu = Client("Shivu", API_ID, API_HASH, bot_token=TOKEN)
 lol = AsyncIOMotorClient(mongo_url)
 db = lol['Character_catcher']
 collection = db['anime_characters_lol']
