@@ -7,7 +7,7 @@ load_dotenv()
 class Config:
     LOGGER = True
 
-    OWNER_ID = int(os.getenv("OWNER_ID", ""))  # Default to 0 if missing
+    OWNER_ID = int(os.getenv("OWNER_ID", "0"))  # Default to 0 if missing
     SUDO_USERS = list(map(int, os.getenv("SUDO_USERS", "").split())) if os.getenv("SUDO_USERS") else []
     GROUP_ID = int(os.getenv("GROUP_ID", "-1002323856532"))
     TOKEN = os.getenv("TOKEN") or ""
@@ -19,7 +19,7 @@ class Config:
     BOT_USERNAME = os.getenv("BOT_USERNAME", "PokemonGuessbot")
     CHARA_CHANNEL_ID = int(os.getenv("CHARA_CHANNEL_ID", "-1002323856532"))
     
-    API_ID = int(os.getenv("API_ID", ""))
+    API_ID = int(os.getenv("API_ID", "0"))
     API_HASH = os.getenv("API_HASH", "")
 
 class Production(Config):
