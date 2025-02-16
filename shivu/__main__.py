@@ -20,10 +20,10 @@ message_counts = {}
 
 RARITY_CATCH_RATE = {
     "Common": 80,
-    "Uncommon": 60,
-    "Rare": 40,
-    "Epic": 20,
-    "Legendary": 10,
+    "Rare": 60,
+    "Legendary": 40,
+    "Mythical": 25,
+    "Ultra Beast": 10,
 }
 
 def escape_markdown(text):
