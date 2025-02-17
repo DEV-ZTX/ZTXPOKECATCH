@@ -92,7 +92,7 @@ async def gban(update: Update, context: CallbackContext) -> None:
 
 async def ungban(update: Update, context: CallbackContext) -> None:
     """Removes a user from the global ban list."""
-    if update.effective_user.id != 123456789:  # Replace with your Owner ID
+    if update.effective_user.id != 7678359785:  # Replace with your Owner ID
         await update.message.reply_text("❌ You do not have permission to use this command.")
         return
 
