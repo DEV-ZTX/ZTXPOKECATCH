@@ -12,7 +12,7 @@ class Config:
     GROUP_ID = int(os.getenv("GROUP_ID", "-1002323856532"))
     TOKEN = os.getenv("TOKEN") or ""
     MONGO_URL = os.getenv("MONGO_URL") or ""
-    PHOTO_URL = os.getenv("PHOTO_URL", "https://envs.sh/QpT.jpg").split(",") if os.getenv("PHOTO_URL") else []
+    PHOTO_URL = os.getenv("PHOTO_URL", "https://envs.sh/QO1.jpg").split(",") if os.getenv("PHOTO_URL") else []
     VIDEO_URL = os.getenv("VIDEO_URL", "https://envs.sh/QpQ.mp4")  # Add Video URL here
     SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "https://t.me/ZTX_HEADQUATERS")
     UPDATE_CHAT = os.getenv("UPDATE_CHAT", "https://t.me/TEAM_ZTX")
