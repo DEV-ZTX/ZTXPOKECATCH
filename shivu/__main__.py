@@ -177,7 +177,7 @@ async def stats(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     """Runs the bot."""
     application.add_handler(CommandHandler("catch", catch_pokemon))
-    application.add_handler(CommandHandler("collection", collection))
+    application.add_handler(CommandHandler("pokedex", collection))
     application.add_handler(CommandHandler("stats", stats))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_counter))
 
