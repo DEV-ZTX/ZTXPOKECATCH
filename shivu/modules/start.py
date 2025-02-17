@@ -1,3 +1,4 @@
+import asyncio
 import random
 from html import escape
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -7,7 +8,11 @@ from shivu import (
     pokedex as collection, banned_users_collection
 )
 
+# Replace this with a valid thunder sticker ID
+THUNDER_STICKER_ID = "CAACAgEAAxkBAAENzwABZ7H96cC6jELihegWHEJZnSxWcQYAAgMJAALjeAQAAaY1zaXqGj3iNgQ"
+
 async def start(update: Update, context: CallbackContext) -> None:
+    """Handles the /start command with thunder effect"""
     user_id = update.effective_user.id
     first_name = update.effective_user.first_name
     username = update.effective_user.username
@@ -25,7 +30,16 @@ async def start(update: Update, context: CallbackContext) -> None:
         if user_data['first_name'] != first_name or user_data['username'] != username:
             await collection.update_one({"_id": user_id}, {"$set": {"first_name": first_name, "username": username}})
 
+    # Send Thunder Sticker
+    sticker_message = await context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=THUNDER_STICKER_ID)
+    
+    # Wait 2 seconds before deleting it
+    await asyncio.sleep(2)
+    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=sticker_message.message_id)
+
+    # Main Welcome Message
     caption = """
+    ⚡ **A sudden thunder roars...** ⚡  
     **🎮 Welcome, Trainer!**  
 
     I am **Pokémon Catcher Bot**! Add me to your group, and I will release wild Pokémon after every 100 messages.  
@@ -101,6 +115,7 @@ async def ungban(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text("Invalid user ID.")
 
 async def button(update: Update, context: CallbackContext) -> None:
+    """Handles button clicks in the bot's menu"""
     query = update.callback_query
     await query.answer()
 
