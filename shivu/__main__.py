@@ -2,21 +2,26 @@ import time
 import random
 import asyncio
 import re
-from shivu.modules import give
+import logging
 from html import escape
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CommandHandler, CallbackContext, MessageHandler, filters
+from telegram.ext import CommandHandler, MessageHandler, filters, Application, CallbackContext
 
+from shivu.modules import give
 from shivu import (
     collection, top_global_groups_collection, group_user_totals_collection, 
-    user_collection, user_totals_collection, shivuu, application, LOGGER
+    user_collection, user_totals_collection, shivuu, application
 )
 
+# Set up logging
+logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
+
+# Game-related variables
 locks = {}
 last_pokemon = {}
 caught_pokemon = {}
 first_catchers = {}
-warned_users = {}
 message_counts = {}
 
 RARITY_CATCH_RATE = {
@@ -43,10 +48,7 @@ async def message_counter(update: Update, context: CallbackContext) -> None:
         chat_data = await user_totals_collection.find_one({'chat_id': chat_id})
         message_frequency = chat_data.get('message_frequency', 100) if chat_data else 100
 
-        if chat_id in message_counts:
-            message_counts[chat_id] += 1
-        else:
-            message_counts[chat_id] = 1
+        message_counts[chat_id] = message_counts.get(chat_id, 0) + 1
 
         if message_counts[chat_id] % message_frequency == 0:
             await spawn_pokemon(update, context)
@@ -56,20 +58,25 @@ async def spawn_pokemon(update: Update, context: CallbackContext) -> None:
     """Spawns a Pokémon with an image but without revealing its name."""
     chat_id = update.effective_chat.id
     all_pokemon = list(await collection.find({}).to_list(length=None))
-    
+
+    if not all_pokemon:
+        await update.message.reply_text("❌ No Pokémon data found. Please check the database.")
+        return
+
     if chat_id not in caught_pokemon:
         caught_pokemon[chat_id] = []
 
-    if len(caught_pokemon[chat_id]) == len(all_pokemon):
+    available_pokemon = [p for p in all_pokemon if p['id'] not in caught_pokemon[chat_id]]
+
+    if not available_pokemon:
         caught_pokemon[chat_id] = []
+        available_pokemon = all_pokemon
 
-    pokemon = random.choice([p for p in all_pokemon if p['id'] not in caught_pokemon[chat_id]])
-
+    pokemon = random.choice(available_pokemon)
     caught_pokemon[chat_id].append(pokemon['id'])
     last_pokemon[chat_id] = pokemon
 
-    if chat_id in first_catchers:
-        del first_catchers[chat_id]
+    first_catchers.pop(chat_id, None)  # Reset first catcher
 
     await context.bot.send_photo(
         chat_id=chat_id,
@@ -84,35 +91,45 @@ async def catch_pokemon(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
 
     if chat_id not in last_pokemon:
+        await update.message.reply_text("⚠️ No Pokémon to catch right now. Wait for one to appear!")
         return
 
     if chat_id in first_catchers:
         await update.message.reply_text("❌ Someone already caught this Pokémon! Try again next time.")
         return
 
-    guess = ' '.join(context.args).lower() if context.args else ''
+    guess = ' '.join(context.args).strip().lower()
     pokemon_name = last_pokemon[chat_id]['name'].lower()
 
     if sorted(pokemon_name.split()) == sorted(guess.split()) or pokemon_name == guess:
         rarity = last_pokemon[chat_id]["rarity"]
         catch_rate = RARITY_CATCH_RATE.get(rarity, 50)
+
         if random.randint(1, 100) > catch_rate:
             await update.message.reply_text("⚠️ The Pokémon escaped! Try again next time.")
             return
-        
-        first_catchers[chat_id] = user_id
+
+        first_catchers[chat_id] = user_id  # Mark as caught
+
+        # Update user data
         user = await user_collection.find_one({'id': user_id})
-        
+        pokemon_entry = {
+            'id': last_pokemon[chat_id]['id'],
+            'name': last_pokemon[chat_id]['name'],
+            'rarity': last_pokemon[chat_id]['rarity']
+        }
+
         if user:
-            await user_collection.update_one({'id': user_id}, {'$push': {'pokemon': last_pokemon[chat_id]}})
+            await user_collection.update_one({'id': user_id}, {'$push': {'pokemon': pokemon_entry}})
         else:
             await user_collection.insert_one({
                 'id': user_id,
                 'username': update.effective_user.username,
                 'first_name': update.effective_user.first_name,
-                'pokemon': [last_pokemon[chat_id]],
+                'pokemon': [pokemon_entry],
             })
 
+        # Update leaderboard
         await group_user_totals_collection.update_one(
             {'user_id': user_id, 'group_id': chat_id}, 
             {'$inc': {'catch_count': 1}}, 
@@ -125,8 +142,8 @@ async def catch_pokemon(update: Update, context: CallbackContext) -> None:
             upsert=True
         )
 
+        # Send success message
         keyboard = [[InlineKeyboardButton(f"View Collection", switch_inline_query_current_chat=f"collection.{user_id}")]]
-        
         await update.message.reply_text(
             f"<b>{escape(update.effective_user.first_name)}</b> caught a Pokémon! ✅ 🎉\n"
             f"🔹 **Name:** <b>{last_pokemon[chat_id]['name']}</b>\n"
@@ -159,10 +176,10 @@ async def stats(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     """Runs the bot."""
-    application.add_handler(CommandHandler("catch", catch_pokemon, block=False))
-    application.add_handler(CommandHandler("collection", collection, block=False))
-    application.add_handler(CommandHandler("stats", stats, block=False))
-    application.add_handler(MessageHandler(filters.ALL, message_counter, block=False))
+    application.add_handler(CommandHandler("catch", catch_pokemon))
+    application.add_handler(CommandHandler("collection", collection))
+    application.add_handler(CommandHandler("stats", stats))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_counter))
 
     application.run_polling(drop_pending_updates=True)
 
